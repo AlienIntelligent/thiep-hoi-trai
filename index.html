@@ -891,7 +891,7 @@
         id="backgroundMusic"
         src="assets/nhac-nen.mp3"
         loop
-        preload="none"
+        preload="auto"
       ></audio>
     </main>
     <script>
@@ -915,7 +915,8 @@
         const duration = reducedMotion ? 0 : 850;
         let page = 0,
           turning = false,
-          lastWheel = 0;
+          lastWheel = 0,
+          musicChoiceMade = false;
         function render() {
           book.classList.toggle("closed", page === 0);
           book.classList.toggle("open", page > 0);
@@ -934,6 +935,9 @@
           if (turning) return;
           const target = page + direction;
           if (target < 0 || target >= sheets.length) return;
+          if (page === 0 && direction > 0 && !musicChoiceMade && music.paused) {
+            void playMusic();
+          }
           turning = true;
           if (direction > 0) {
             const sheet = sheets[page];
@@ -1020,19 +1024,16 @@
             musicBtn.setAttribute("aria-label", "Chưa có tệp nhạc nền");
           }
         }
-        musicBtn.addEventListener("click", () =>
-          music.paused ? playMusic() : (music.pause(), updateMusic(false)),
-        );
-        music.addEventListener("ended", () => updateMusic(false));
-        // Âm thanh chỉ khởi chạy bằng tương tác nhấn, theo chính sách phát của trình duyệt.
-        next.addEventListener("click", () => {
-          if (
-            page === 1 &&
-            music.paused &&
-            musicBtn.getAttribute("aria-pressed") === "false"
-          )
-            playMusic();
+        musicBtn.addEventListener("click", () => {
+          musicChoiceMade = true;
+          if (music.paused) {
+            void playMusic();
+          } else {
+            music.pause();
+            updateMusic(false);
+          }
         });
+        music.addEventListener("ended", () => updateMusic(false));
         render();
       })();
     </script>
